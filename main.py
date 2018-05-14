@@ -3,6 +3,7 @@ import json, math
 
 SIZE = 9
 ENTITY_ID = 1
+CIRCUIT_ID = 0
 
 def buildDisplayModel(data):
     entities = data['blueprint']['entities']
@@ -45,9 +46,11 @@ def buildBlueprint(entities):
     return data.to_exchange_string()
 
 def buildSymbolConst(displayModel, symbolData, x, sy, state):
-    global ENTITY_ID
+    global ENTITY_ID, CIRCUIT_ID
     result = []
     y = sy
+
+    CIRCUIT_ID += 1
 
     decComb = {
         "connections": {
@@ -84,13 +87,14 @@ def buildSymbolConst(displayModel, symbolData, x, sy, state):
 
     result.append(decComb)
     ENTITY_ID += 1
-    y += 1.5
+    y += 2.5
 
     constEntity = {
         "connections": {
             "1": {
                 "green": [
-                    {
+                    {   
+                        "circuit_id": CIRCUIT_ID,
                         "entity_id": ENTITY_ID - 1
                     }
                 ]
@@ -111,13 +115,9 @@ def buildSymbolConst(displayModel, symbolData, x, sy, state):
         for j in range(SIZE):
             if symbolData[i][j]:
                 if index >= 19:
-                    constEntity['connections']['2'] = {
-                        "green": [
-                            {
-                                "entity_id": ENTITY_ID + 1
-                            }
-                        ]
-                    }
+                    constEntity['connections']['1']['green'].append({
+                        "entity_id": ENTITY_ID + 1
+                    })
                     result.append(constEntity)
                     index = 1
                     y += 1
@@ -174,9 +174,11 @@ def main():
     # entities += buildSymbolConst(displayModel, symbols['a'], 0, 1)
 
     x = 0
-    y = 0
+    y = -1.5
     state = 1
     s = "Did you ever hear the tragedy of Darth Plagueis The Wise"
+    # s = "Did"
+    # s = "H"
     for l in s:
         entities += buildSymbolConst(displayModel, symbols[l.lower()], x, y, state)
         x+=1
@@ -187,8 +189,10 @@ def main():
 
     print(buildBlueprint(entities))
 
-    print(json.dumps(EncodedBlob.from_exchange_string(
-        "0eNrtV9uOmzAQ/Rc/4ypAkk0j9Sv6WK0iA4aMamw0tpONVvx7B1ittilkTTbqtlJeEvl2ZuxzfDw8s0x52SBox7bPDHKjLdv+eGYWKi1U1+dOjWRbBk7WLGJa1F2rkDkUEnlu6gy0cAZZGzHQhXxi27iN3gXoAjmh3ThC0j5GTGoHDuSQT9847bSvM4kU4lImEWuMpaVGd+EJjtP0U/f3ZUUxKLRDo3aZ3IsD0Hya9IKyo7GiX2m73hLQut0fOzkAOk89rzkMM/h3NqD3G+tzpKQagX1SW/aNFhjvGj8DUh4kntwedDVgNydK0Wu3K9HUO9AExrYOvWyH0Frmr9nH3Q/K4u35AbUSmgmYe3B9M+7OukIp9fnEZftIqEkHMzp+BkSktW1H/RlXySyuFp9BVfKPUhWfUxX9NpyGMrl6h8n4nMmLcaaITmcR/Sl3Mv3f7+T6NndyedGIpww0nmCqBOUkBj0cyuiK7wXZfMFBW4m0cDhG/+KZMx6RiwBJAEDmUZNML+KkATjyqUFpLbeNAjcFtAwAaoA6xxavAhbbWiiSpyK9IeS8MWocax2AVSoPBT+KijQwhvEQgIECFH+ZM4axCcBQpgLraDf5XlrHM1+WE8f7NbTqQN/fR44mM25ce4sQqsyRpGOP4PL9OEqIhPtLzI+A41TFISoGpN2IpwmEEP2iLEHTjaTzyVG6CaQQAVujBPJGaDnOeRwkZCdFzZ1HMqSJXNbBMFJXkyghKs4MqCmP2vRuPObxIc9sPGHOq3nmvLh781/x5lKQAV1ECdF2BtWNLFoZUoVxcJBXO/SZuzbCWoLjDZpDV3pd7drjn4dXWbYiPZKG1fVG/a4lxbexpOQmlpR+0JJClPz6zc8zY35O+fQsa0vCrG09z9ruZee97LyXnfey8152fqTsTMe8+TEaAr55DSj4gfy0t9/15iGJN+l6kS7b9hepAWzl").data, indent=4, sort_keys=True))
+    # print(json.dumps(EncodedBlob.from_exchange_string(
+    #     "0eNqlltuOnDAMht8l16QaYHd2itSn6GW1QgEMYzUkUQ5z0Ih3r4HVaNSF2dDeIDnEnx37x+HGKhnAWFSeFTeGtVaOFb9uzGGnhBzX/NUAKxh66FnClOhHa9znhfK81n2FSnht2ZAwVA1cWJEOyZeEBmpswC4DsuE9YaA8eoQ5n8m4lir0FViK8IyTMKMduWo1RifcLmFXVvD02yuFoNS91bKs4ChOSNtpzwekpHfN5OjG1Rat8+Wnc5zQ+kAr9xTmHfwnm+lTYSjFbLR6I+yUVMF+kIcO3oQNTDiBvfojqm6GmyvlGJQvW6v7EhXBWOFtgGGOraC+p5+Oj84CqMcKYjOVdxjGHv1V1expf1fKmq7UtEXpwUapSWrV8aOg3jcclQNLjvN5w1TJTcJ6CsgiAFWwigT1lJNHcOBiLDjHnZHo10AvESCDtLjk/Brh7HohSUeShGGx5kbLZdY+gtXKgA0/i44ksMR4i2BYgZJ/7FliHCIYUnfoPJ2mPoLzvAptu1Le79tpjrQuuuUipbvtPCOcwxNwY/VpHDLL4HQ7WNCn/iU3RvBGn0nv7oy+Pi5TYuS+ciV8hsVIHq1WXFxWuhCje0njhEbQssjSGLU7LYWl9ilYgcTIvdIo13pzoDG8YWqTZ422Duhn82GAj3a+MtTzfxnq2f8P9fuPBa+0/r0yzt+3X1v0ZzAFeohAQemedNMh9oe3LD3k+13+Mgx/AG3A/Ws=").data, indent=4, sort_keys=True))
+    # print(json.dumps(EncodedBlob.from_exchange_string(
+    #     "0eNrtl8FuozAQht/F53gVIEmzSPsUe1xVkQFDRmtsNLaTRhHvvgNEVdWF1KRV20MuiXDsf8bj3x+TM8uUlw2Cdiw9M8iNtiz9c2YWKi1UN+ZOjWQpAydrtmBa1N1TIXMoJPLc1Blo4QyydsFAF/KJpVG7eFOgC+SEduMKcfu4YFI7cCCHfPqH0077OpNIIa5lsmCNsbTU6C48yXGafuq+fqwpBoV2aNQuk3txAJpPky4qO/qt6FfabrQEtG73304OgM7TyHMOwwz+mw3q/cb6HCmpRmCfVMp+0QLjXeNnSMqDxJPbg64G7eZEKXrtdiWaegeaxFjq0Mt2CK1l/px91H1UKKV+WUEoWLpqH9u2O6RXVY1nVXX5FUWNv21R1xNFTWYV9Uucmnzbom4mirq6CpIpAEQTNS1BOYlB4FNGV3wvCFMFB20l0sJhw/5y52dA8KpAHCCQedRkqKs6SYCOfGpQWstto8BNCa0ChBqgwbHF64DFthaKjKTIGQg5b4wa19oEaJXKQ8GPoiIPjGk8BGigAMUvc8Y0tgEaylRgHe0m30vreObLcqK8P0Pfmuj7m8PRZMaNe28ZclTmSNaxR3D5flwlxML9reVHwPGjikJcDEi7EU8TCiH+RVmCphtJ9clRugmlEANbowTyRmg5fuZRkJGdFDV3HglIE7lsgmWkriZVQlycGVBTjNoSXmfQuOtoAHMPbnicgPN6HpyXdzZ/CptLQQC6qhLi7QyqD0K0MuQK4+Agbyb0K7o2wlqS4w2aQ9ck3Uzt8b83NyFbkR/Jw+p2UL+JpOhjkBR/CJKSdyIpxMnP/1l5ZszfKU7PQlschrbNPLTd285723lvO+9t573tfE/bmYyx+XExBHzxNqDgB+Jpj9/N9iGOtslmmaza9h/oNQIJ").data, indent=4, sort_keys=True))
 
 
 
